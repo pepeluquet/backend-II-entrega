@@ -1,0 +1,139 @@
+<section class="portada">
+    <div class="titulo">
+        <h3 class="tracking-in-contract">InaYoga !!</h3>
+    </div>
+</section>
+
+<section class="nucleo">
+    <h2 class="subtitulos">Nuestros productos</h2>
+    <form method="get" style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <label>
+            Categoría:
+            <input type="text" name="query" placeholder="Ej: Accesorios" value="{{query}}">
+        </label>
+        <label>
+            Disponibilidad:
+            <select name="query">
+                <option value="">Todas</option>
+                <option value="true" {{#if (eq query "true")}}selected{{/if}}>Disponible</option>
+                <option value="false" {{#if (eq query "false")}}selected{{/if}}>No disponible</option>
+            </select>
+        </label>
+        <label>
+            Ordenar por precio:
+            <select name="sort">
+                <option value="">Sin orden</option>
+                <option value="asc" {{#if (eq sort "asc")}}selected{{/if}}>Ascendente</option>
+                <option value="desc" {{#if (eq sort "desc")}}selected{{/if}}>Descendente</option>
+            </select>
+        </label>
+        <label>
+            Productos por página:
+            <input type="number" name="limit" min="1" max="100" value="{{limit}}">
+        </label>
+        <button type="submit">Filtrar</button>
+    </form>
+    {{#if products.length}}
+        <div class="articulos-lectura" style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
+            {{#each products}}
+                <div class="card articulo-info" style="width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; box-shadow: 2px 2px 8px #eee;">
+                    <h4>{{title}}</h4>
+                    <p>{{description}}</p>
+                    <p><strong>Precio:</strong> ${{price}}</p>
+                    <p><strong>Stock:</strong> {{stock}}</p>
+                    <p><strong>Categoría:</strong> {{category}}</p>
+                    {{#if onSale}}
+                        <span style="color: green; font-weight: bold;">¡En oferta!</span>
+                    {{/if}}
+                    {{#if thumbnails.length}}
+                        <div style="margin: 0.5rem 0;">
+                            {{#each thumbnails}}
+                                <img src="{{this}}" alt="Imagen de {{../title}}" style="max-width: 80px; border-radius: 4px;">
+                            {{/each}}
+                        </div>
+                    {{/if}}
+                    <button class="add-to-cart-btn" data-id="{{_id}}" style="background: #4caf50; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Agregar al carrito</button>
+                </div>
+            {{/each}}
+        </div>
+    {{else}}
+        <p>No hay productos disponibles en este momento.</p>
+    {{/if}}
+</section>
+
+<div style="margin: 2rem 0; display: flex; justify-content: center; gap: 1rem;">
+    {{#if prevLink}}
+        <a href="{{prevLink}}" style="padding: 0.5rem 1rem; background: #2196f3; color: #fff; border-radius: 4px; text-decoration: none;">Anterior</a>
+    {{/if}}
+    <span style="align-self: center;">Página {{page}} de {{totalPages}}</span>
+    {{#if nextLink}}
+        <a href="{{nextLink}}" style="padding: 0.5rem 1rem; background: #2196f3; color: #fff; border-radius: 4px; text-decoration: none;">Siguiente</a>
+    {{/if}}
+</div>
+
+<div style="text-align: center; margin-bottom: 2rem;">
+    <button id="go-to-cart" style="display:none; padding: 0.7rem 1.5rem; background: #ff9800; color: #fff; border-radius: 4px; text-decoration: none; font-weight: bold;">Ir al carrito</button>
+</div>
+
+<footer class="final">
+    <div class="menu-final">
+        <ul class="link">
+            <li><a href="/">Inicio</a></li>
+        </ul>
+    </div>
+</footer>
+
+<script>
+    let cartId = localStorage.getItem('cartId');
+    const goToCartBtn = document.getElementById('go-to-cart');
+
+    function showGoToCartBtn() {
+        if (goToCartBtn && cartId) {
+            goToCartBtn.style.display = 'inline-block';
+        }
+    }
+
+    function goToCart() {
+        if (cartId) window.location.href = `/carts/${cartId}`;
+    }
+
+    async function ensureCart() {
+        if (!cartId) {
+            const res = await fetch('/api/carts', { method: 'POST' });
+            const data = await res.json();
+            cartId = data._id || data.id || (data.cart && (data.cart._id || data.cart.id));
+            if (cartId) {
+                localStorage.setItem('cartId', cartId);
+                showGoToCartBtn();
+            }
+        } else {
+            showGoToCartBtn();
+        }
+    }
+
+    if (goToCartBtn) {
+        goToCartBtn.addEventListener('click', goToCart);
+    }
+
+    ensureCart();
+
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            await ensureCart();
+            if (!cartId) {
+                alert('No se pudo crear el carrito.');
+                return;
+            }
+            const productId = btn.dataset.id;
+            const res = await fetch(`/api/carts/${cartId}/product/${productId}`, {
+                method: 'POST'
+            });
+            if (res.ok) {
+                alert('Producto agregado al carrito');
+                showGoToCartBtn();
+            } else {
+                alert('Error al agregar producto');
+            }
+        });
+    });
+</script>
