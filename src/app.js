@@ -17,10 +17,10 @@ require('./config/passport.config')(passport);
 const app = express();
 const PORT = 8080;
 
-// Connect to database
+// Conectar a la base de datos
 connectDB();
 
-// Handlebars setup
+// Configuración de Handlebars
 const hbs = exphbs.create({
     helpers: {
         eq: (a, b) => a == b
@@ -36,7 +36,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Initialize Users Service
+// Inicializar el servicio de usuarios
 const usersDao = new UsersDao();
 const usersService = new UsersService(usersDao);
 const sessionsRouter = createSessionsRouter(usersService, passport);
