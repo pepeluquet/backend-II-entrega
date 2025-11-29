@@ -86,6 +86,27 @@ class CartController {
             res.status(500).json({ error: error.message });
         }
     };
+
+    // 5. Finalizar compra del carrito
+    finalizePurchase = async (req, res) => {
+        const { cid } = req.params;
+        // Preferir email del usuario autenticado si está disponible
+        const purchaser = (req.user && req.user.email) || req.body.purchaser;
+        if (!purchaser) return res.status(400).json({ status: 'error', message: 'Purchaser (email) requerido' });
+
+        try {
+            const result = await this.cartService.finalizePurchase(cid, purchaser);
+            if (!result) return res.status(404).json({ status: 'error', message: 'Carrito no encontrado' });
+            if (result.status && result.status === 'error') {
+                return res.status(400).json(result);
+            }
+
+            // Devolver el ticket creado
+            return res.json({ status: 'success', ticket: result.ticket });
+        } catch (error) {
+            return res.status(500).json({ status: 'error', message: error.message });
+        }
+    };
 }
 
 module.exports = CartController;
