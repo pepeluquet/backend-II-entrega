@@ -3,6 +3,8 @@ const ProductDao = require('../dao/products.dao.js');
 const ProductsService = require('../services/products.services.js');
 const ProductsControllers = require('../controllers/products.controllers.js');
 const uploader = require('../utils/uploaders.js');
+const passport = require('passport');
+const authorization = require('../middlewares/authorization');
 
 const router = express.Router();
 const productDao = new ProductDao();
@@ -18,6 +20,8 @@ router.get('/:pid', productsController.getProductById)
 // POST /api/products (con Multer)
 router.post(
   '/',
+  passport.authenticate('jwt', { session: false }),
+  authorization('admin'),
   uploader.array('thumbnails'),
   async (req, res) => {
     try {
@@ -32,9 +36,9 @@ router.post(
 );
 
 // PUT /api/products/:pid
-router.put('/:pid', productsController.updateProduct)
+router.put('/:pid', passport.authenticate('jwt', { session: false }), authorization('admin'), productsController.updateProduct)
 
 // DELETE /api/products/:pid
-router.delete('/:pid', productsController.deleteProduct)
+router.delete('/:pid', passport.authenticate('jwt', { session: false }), authorization('admin'), productsController.deleteProduct)
 
 module.exports = router

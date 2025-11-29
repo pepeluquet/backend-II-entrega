@@ -9,10 +9,16 @@ function createSessionsRouter(usersService, passport) {
   // POST /api/sessions/login
   router.post('/login', sessionsController.login);
 
-  // GET /api/sessions/current
+  // POST /api/sessions/forgot-password
+  router.post('/forgot-password', sessionsController.forgotPassword);
+
+  // POST /api/sessions/reset-password
+  router.post('/reset-password', sessionsController.resetPassword);
+
+  // GET /api/sessions/current (usa la estrategia 'current' de Passport)
   router.get(
     '/current',
-    passport.authenticate('jwt', { session: false }),
+    passport.authenticate('current', { session: false }),
     sessionsController.current
   );
 
