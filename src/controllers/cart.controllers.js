@@ -5,10 +5,19 @@ class CartController {
 
     createCart = async (req, res) => {
         try {
-            const newCart = await this.cartService.createCart();
+            // Intentar obtener userId del usuario autenticado o del body
+            const userId = req.user?.id || req.body?.userId;
+            
+            if (!userId) {
+                return res.status(400).json({ 
+                    error: 'userId es requerido. Proporcione userId en el body o autentíquese.' 
+                });
+            }
+            
+            const newCart = await this.cartService.createCart(userId);
             res.status(201).json(newCart);
-        } catch {
-            res.status(500).json({ error: 'Error al crear el carrito' });
+        } catch (error) {
+            res.status(500).json({ error: error.message || 'Error al crear el carrito' });
         }
     };
 
@@ -26,8 +35,9 @@ class CartController {
 
     addProductToCart = async (req, res) => {
         const { cid, pid } = req.params;
+        const quantity = req.body?.quantity || 1; // Cantidad por defecto: 1
         try {
-            const updatedCart = await this.cartService.addProductToCart(cid, pid);
+            const updatedCart = await this.cartService.addProductToCart(cid, pid, quantity);
             if (!updatedCart) {
                 return res.status(404).json({ status: 'error', message: 'Carrito o producto no encontrado' });
             }
@@ -91,20 +101,42 @@ class CartController {
     finalizePurchase = async (req, res) => {
         const { cid } = req.params;
         // Preferir email del usuario autenticado si está disponible
-        const purchaser = (req.user && req.user.email) || req.body.purchaser;
-        if (!purchaser) return res.status(400).json({ status: 'error', message: 'Purchaser (email) requerido' });
+        const purchaser = (req.user && req.user.email) || req.body?.purchaser;
+        
+        if (!purchaser) {
+            return res.status(400).json({ 
+                status: 'error', 
+                message: 'Purchaser (email) requerido. Proporcione email en el body o autentíquese.' 
+            });
+        }
 
         try {
             const result = await this.cartService.finalizePurchase(cid, purchaser);
-            if (!result) return res.status(404).json({ status: 'error', message: 'Carrito no encontrado' });
+            
+            if (!result) {
+                return res.status(404).json({ 
+                    status: 'error', 
+                    message: 'Carrito no encontrado' 
+                });
+            }
+
             if (result.status && result.status === 'error') {
                 return res.status(400).json(result);
             }
 
-            // Devolver el ticket creado
-            return res.json({ status: 'success', ticket: result.ticket });
+            // Devolver respuesta completa con ticket y detalles
+            return res.json({ 
+                status: 'success', 
+                ticket: result.ticket,
+                purchasedProducts: result.purchasedProducts,
+                failedProducts: result.failedProducts,
+                message: result.message
+            });
         } catch (error) {
-            return res.status(500).json({ status: 'error', message: error.message });
+            return res.status(500).json({ 
+                status: 'error', 
+                message: error.message 
+            });
         }
     };
 }

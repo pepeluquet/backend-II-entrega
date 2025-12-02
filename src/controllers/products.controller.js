@@ -78,6 +78,78 @@ class ProductsController {
       });
     }
   };
+
+  createProduct = async (req, res) => {
+    try {
+      const productData = {
+        ...req.body,
+        thumbnails: req.files ? req.files.map(file => `/images/${file.filename}`) : req.body.thumbnails || []
+      };
+
+      const newProduct = await this.productsService.createProduct(productData);
+      
+      res.status(201).json({
+        status: 'success',
+        data: newProduct
+      });
+    } catch (error) {
+      res.status(400).json({
+        status: 'error',
+        message: error.message
+      });
+    }
+  };
+
+  updateProduct = async (req, res) => {
+    try {
+      const { pid } = req.params;
+      const updatedFields = req.body;
+
+      const updatedProduct = await this.productsService.updateProduct(pid, updatedFields);
+
+      if (!updatedProduct) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Producto no encontrado'
+        });
+      }
+
+      res.json({
+        status: 'success',
+        data: updatedProduct
+      });
+    } catch (error) {
+      res.status(400).json({
+        status: 'error',
+        message: error.message
+      });
+    }
+  };
+
+  deleteProduct = async (req, res) => {
+    try {
+      const { pid } = req.params;
+      const deletedProduct = await this.productsService.deleteProduct(pid);
+
+      if (!deletedProduct) {
+        return res.status(404).json({
+          status: 'error',
+          message: 'Producto no encontrado'
+        });
+      }
+
+      res.json({
+        status: 'success',
+        message: 'Producto eliminado correctamente',
+        data: deletedProduct
+      });
+    } catch (error) {
+      res.status(400).json({
+        status: 'error',
+        message: error.message
+      });
+    }
+  };
 }
 
 module.exports = ProductsController;

@@ -8,11 +8,11 @@ if (!uri) {
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(uri); // opciones por defecto
+    await mongoose.connect(uri); 
     console.log('MongoDB conectado');
   } catch (err) {
     console.error('Error conectando a MongoDB:', err.message);
-    throw err; // propagar para que el proceso no continúe
+    throw err; 
   }
 };
 

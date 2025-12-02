@@ -29,7 +29,7 @@ app.use(require('cookie-parser')());
 app.use(passport.initialize());
 
 app.use('/api/sessions', createSessionsRouter(usersService, passport));
-app.use('/api/products', createProductsRouter(productsService));
+app.use('/api/products', createProductsRouter(productsService, passport));
 app.use('/api/carts', createCartsRouter(cartsService, passport));
 
 module.exports = app;

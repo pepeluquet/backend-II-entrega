@@ -6,11 +6,11 @@ const router = express.Router();
 function createCartsRouter(cartService, passport) {
   const cartController = new CartController(cartService);
 
-  // Middleware de autenticación (opcional)
+  // Middleware de autenticación 
   const authenticateUser = (req, res, next) => {
     passport.authenticate('current', { session: false }, (err, user) => {
       if (user) req.user = user;
-      next(); // permitir continuar aunque no esté autenticado
+      next(); 
     })(req, res, next);
   };
 
@@ -35,7 +35,7 @@ function createCartsRouter(cartService, passport) {
   // DELETE /api/carts/:cid - Vaciar carrito
   router.delete('/:cid', cartController.clearCart);
 
-  // POST /api/carts/:cid/purchase - Finalizar compra ⭐
+  // POST /api/carts/:cid/purchase - Finalizar compra 
   router.post('/:cid/purchase', authenticateUser, cartController.finalizePurchase);
 
   return router;

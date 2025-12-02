@@ -27,7 +27,7 @@ class ProductsServices {
         if (!id) {
             throw new Error('ID del producto es requerido')
         }   
-        return await this.productDAO.getProductById(id)
+        return await this.productsDAO.getProductById(id)
     }
 
     async createProduct(productData) {
@@ -65,29 +65,29 @@ class ProductsServices {
             thumbnails,
             status
         }
-        return await this.productDAO.create(newProduct)
+        return await this.productsDAO.create(newProduct)
     }
 
     async updateProduct(id, updatedFields) {
         if (!id) {
             throw new Error('ID del producto es requerido para actualizar')
         }
-        const existingProduct = await this.productDao.getById(id)
+        const existingProduct = await this.productsDAO.getById(id)
         if (!existingProduct) {
             throw new Error('Producto no encontrado')
         }
-        return await this.productDao.updateProduct(id, updatedFields)
+        return await this.productsDAO.update(id, updatedFields)
     }
 
     async deleteProduct(id) {
         if (!id) {
             throw new Error('ID del producto es requerido para eliminar')
         }
-        const existingProduct = await this.productDao.getById(id)
+        const existingProduct = await this.productsDAO.getById(id)
         if (!existingProduct) {
             throw new Error('Producto no encontrado')
         }
-        return await this.productDAO.deleteProduct(id)
+        return await this.productsDAO.delete(id)
     }
 }
 
