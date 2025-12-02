@@ -80,7 +80,7 @@ No necesitas conocimientos técnicos para navegar y comprar.
 
 4. **Inicia el servidor:**
     ```bash
-    npm start
+    node index.js
     ```
     El servidor estará disponible en [http://localhost:8080](http://localhost:8080)
 

@@ -1,27 +1,44 @@
 const express = require('express');
-const CartDao = require('../dao/cart.dao.js');
-const CartService = require('../services/cart.services.js');
-const CartController = require('../controllers/cart.controllers.js');
-const passport = require('passport');
-const authorization = require('../middlewares/authorization');
-const TicketService = require('../services/ticket.services.js');
+const CartController = require('../controllers/cart.controllers');
 
 const router = express.Router();
-const cartDao = new CartDao();
-const ticketService = new TicketService();
-const cartService = new CartService(cartDao, ticketService);
-const cartController = new CartController(cartService);
 
-// POST /api/carts
-router.post('/', cartController.createCart);
+function createCartsRouter(cartService, passport) {
+  const cartController = new CartController(cartService);
 
-// GET /api/carts/:cid
-router.get('/:cid', cartController.getCartProducts);
+  // Middleware de autenticación (opcional)
+  const authenticateUser = (req, res, next) => {
+    passport.authenticate('current', { session: false }, (err, user) => {
+      if (user) req.user = user;
+      next(); // permitir continuar aunque no esté autenticado
+    })(req, res, next);
+  };
 
-// POST /api/carts/:cid/product/:pid
-router.post('/:cid/product/:pid', passport.authenticate('jwt', { session: false }), authorization('user'), cartController.addProductToCart);
+  // POST /api/carts - Crear carrito
+  router.post('/', cartController.createCart);
 
-// POST /api/carts/:cid/purchase - finalizar compra (solo usuarios autenticados)
-router.post('/:cid/purchase', passport.authenticate('jwt', { session: false }), authorization('user'), cartController.finalizePurchase);
+  // GET /api/carts/:cid/products - Ver productos del carrito
+  router.get('/:cid/products', cartController.getCartProducts);
 
-module.exports = router;
+  // POST /api/carts/:cid/products/:pid - Agregar producto
+  router.post('/:cid/products/:pid', cartController.addProductToCart);
+
+  // DELETE /api/carts/:cid/products/:pid - Eliminar producto
+  router.delete('/:cid/products/:pid', cartController.deleteProductFromCart);
+
+  // PUT /api/carts/:cid - Reemplazar todos los productos
+  router.put('/:cid', cartController.replaceCartProducts);
+
+  // PUT /api/carts/:cid/products/:pid - Actualizar cantidad
+  router.put('/:cid/products/:pid', cartController.updateProductQuantity);
+
+  // DELETE /api/carts/:cid - Vaciar carrito
+  router.delete('/:cid', cartController.clearCart);
+
+  // POST /api/carts/:cid/purchase - Finalizar compra ⭐
+  router.post('/:cid/purchase', authenticateUser, cartController.finalizePurchase);
+
+  return router;
+}
+
+module.exports = createCartsRouter;

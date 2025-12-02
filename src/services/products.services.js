@@ -1,6 +1,6 @@
-class ProductServices {
-    constructor(productsDao) {
-        this.productsDao = productsDao;
+class ProductsServices {
+    constructor(productsDAO) {
+        this.productsDAO = productsDAO;
     }
 
     async getAllProducts({ limit = 10, page = 1, sort, query }) {
@@ -18,7 +18,7 @@ class ProductServices {
             lean: true
         };
 
-        return await this.productsDao.getAll(filter, options);
+        return await this.productsDAO.getAll(filter, options);
     }
 
 
@@ -27,7 +27,7 @@ class ProductServices {
         if (!id) {
             throw new Error('ID del producto es requerido')
         }   
-        return await this.productDao.getProductById(id)
+        return await this.productDAO.getProductById(id)
     }
 
     async createProduct(productData) {
@@ -65,7 +65,7 @@ class ProductServices {
             thumbnails,
             status
         }
-        return await this.productDao.create(newProduct)
+        return await this.productDAO.create(newProduct)
     }
 
     async updateProduct(id, updatedFields) {
@@ -87,8 +87,8 @@ class ProductServices {
         if (!existingProduct) {
             throw new Error('Producto no encontrado')
         }
-        return await this.productDao.deleteProduct(id)
+        return await this.productDAO.deleteProduct(id)
     }
 }
 
-module.exports = ProductServices;
+module.exports = ProductsServices;

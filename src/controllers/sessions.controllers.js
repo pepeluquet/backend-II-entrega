@@ -19,44 +19,26 @@ class SessionsControllers {
     try {
       const { email, password } = req.body;
 
-      // Verifica que su correo electrónico y contraseña estén presentes.
       if (!email || !password) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Email y contraseña son requeridos'
-        });
+        return res.status(400).json({ status: 'error', message: 'Email y contraseña requeridos' });
       }
 
-      // Buscar usuario por correo electrónico
       const user = await this.usersService.getUserByEmail(email);
-
-      // Verificar que el usuario exista
       if (!user) {
-        return res.status(401).json({
-          status: 'error',
-          message: 'Email o contraseña incorrectos'
-        });
+        return res.status(401).json({ status: 'error', message: 'Email o contraseña incorrectos' });
       }
 
-      // Verificar contraseña
       if (!isValidPassword(password, user.password)) {
-        return res.status(401).json({
-          status: 'error',
-          message: 'Email o contraseña incorrectos'
-        });
+        return res.status(401).json({ status: 'error', message: 'Email o contraseña incorrectos' });
       }
 
-      // Generar token JWT
       const token = generateToken(user);
-
-      // Establecer cookie httpOnly con JWT
       res.cookie('currentUser', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        maxAge: 24 * 60 * 60 * 1000
       });
 
-      // Retornar respuesta de éxito
       res.json({
         status: 'success',
         message: 'Sesión iniciada correctamente',
@@ -69,10 +51,7 @@ class SessionsControllers {
         }
       });
     } catch (error) {
-      res.status(500).json({
-        status: 'error',
-        message: error.message
-      });
+      res.status(500).json({ status: 'error', message: error.message });
     }
   };
 
@@ -163,6 +142,31 @@ class SessionsControllers {
       return res.json({ status: 'success', message: 'Contraseña actualizada correctamente' });
     } catch (err) {
       return res.status(500).json({ status: 'error', message: err.message });
+    }
+  };
+
+  register = async (req, res) => {
+    try {
+      const { first_name, last_name, email, age, password } = req.body;
+      
+      // Validar que todos los campos estén presentes
+      if (!first_name || !last_name || !email || !age || !password) {
+        return res.status(400).json({ error: 'Todos los campos son requeridos' });
+      }
+
+      // Crear usuario
+      const newUser = await this.usersService.create({
+        firstName: first_name,
+        lastName: last_name,
+        email,
+        age,
+        password
+      });
+
+      res.status(201).json({ message: 'Usuario registrado exitosamente', user: newUser });
+    } catch (error) {
+      console.error('Error en register:', error);
+      res.status(500).json({ error: error.message || 'Error al registrar usuario' });
     }
   };
 }

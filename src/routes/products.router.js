@@ -1,44 +1,52 @@
 const express = require('express');
-const ProductDao = require('../dao/products.dao.js');
-const ProductsService = require('../services/products.services.js');
-const ProductsControllers = require('../controllers/products.controllers.js');
-const uploader = require('../utils/uploaders.js');
+const ProductsController = require('../controllers/products.controller');
 const passport = require('passport');
 const authorization = require('../middlewares/authorization');
+const uploader = require('../utils/uploaders');
+const ProductDao = require('../dao/products.dao.js');
+const ProductsService = require('../services/products.services.js');
+
 
 const router = express.Router();
 const productDao = new ProductDao();
 const productsService = new ProductsService(productDao);
-const productsController = new ProductsControllers(productsService);
+const productsController = new ProductsController(productsService);
 
-// GET /api/products
-router.get('/', productsController.getAllProducts)
+function createProductsRouter(productsService) {
+  const productsController = new ProductsController(productsService);
 
-// GET /api/products/:pid
-router.get('/:pid', productsController.getProductById)
+  // GET /api/products - Ver todos los productos
+  router.get('/', productsController.getAllProducts);
 
-// POST /api/products (con Multer)
-router.post(
-  '/',
-  passport.authenticate('jwt', { session: false }),
-  authorization('admin'),
-  uploader.array('thumbnails'),
-  async (req, res) => {
-    try {
-      // Procesa las rutas de las imágenes subidas
-      const thumbnails = req.files ? req.files.map(file => `/images/${file.filename}`) : [];
-      // Envía el body y las rutas al controlador
-      await productsController.createProductWithImages(req, res, thumbnails);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-);
+  // GET /api/products/:pid - Ver un producto específico
+  router.get('/:pid', productsController.getProductById);
 
-// PUT /api/products/:pid
-router.put('/:pid', passport.authenticate('jwt', { session: false }), authorization('admin'), productsController.updateProduct)
+  // POST /api/products - Crear producto (admin)
+  // router.post(
+  //   '/',
+  //   passport.authenticate('jwt', { session: false }),
+  //   authorization('admin'),
+  //   uploader.array('thumbnails'),
+  //   productsController.createProduct
+  // );
 
-// DELETE /api/products/:pid
-router.delete('/:pid', passport.authenticate('jwt', { session: false }), authorization('admin'), productsController.deleteProduct)
+  // PUT /api/products/:pid - Actualizar producto (admin)
+  // router.put(
+  //   '/:pid',
+  //   passport.authenticate('jwt', { session: false }),
+  //   authorization('admin'),
+  //   productsController.updateProduct
+  // );
 
-module.exports = router
+  // DELETE /api/products/:pid - Eliminar producto (admin)
+  // router.delete(
+  //   '/:pid',
+  //   passport.authenticate('jwt', { session: false }),
+  //   authorization('admin'),
+  //   productsController.deleteProduct
+  // );
+
+  return router;
+}
+
+module.exports = createProductsRouter;
